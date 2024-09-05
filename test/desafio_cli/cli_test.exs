@@ -32,6 +32,21 @@ defmodule DesafioCli.CLITest do
     assert output =~ "Exiting program."
   end
 
+  test "SET command error with no value" do
+    input = """
+    SET teste
+    EXIT
+    """
+
+    output =
+      capture_io([input: input, capture_prompt: false], fn ->
+        CLI.main()
+      end)
+
+    assert output =~ "ERR \"SET <key> <value> - Syntax error\""
+    assert output =~ "Exiting program."
+  end
+
   test "GET commands" do
     input = """
     GET teste
@@ -51,7 +66,7 @@ defmodule DesafioCli.CLITest do
     assert output =~ "Exiting program."
   end
 
-  test "BEGIN commands" do
+  test "BEGIN command" do
     input = """
     GET teste
     BEGIN
@@ -72,7 +87,7 @@ defmodule DesafioCli.CLITest do
     assert output =~ "Exiting program."
   end
 
-  test "BEGIN commands recursive" do
+  test "BEGIN command recursive" do
     input = """
     BEGIN
     BEGIN
@@ -89,7 +104,7 @@ defmodule DesafioCli.CLITest do
     assert output =~ "Exiting program."
   end
 
-  test "ROLLBACK commands" do
+  test "ROLLBACK command" do
     input = """
     GET teste
     BEGIN
@@ -114,7 +129,7 @@ defmodule DesafioCli.CLITest do
     assert output =~ "Exiting program."
   end
 
-  test "ROLLBACK commands recursive" do
+  test "ROLLBACK command recursive" do
     input = """
     GET teste
     BEGIN
@@ -153,7 +168,7 @@ defmodule DesafioCli.CLITest do
     assert output =~ "Exiting program."
   end
 
-  test "COMMIT commands" do
+  test "COMMIT command" do
     input = """
     GET teste
     BEGIN
@@ -178,7 +193,7 @@ defmodule DesafioCli.CLITest do
     assert output =~ "Exiting program."
   end
 
-  test "COMMIT commands recursive" do
+  test "COMMIT command recursive" do
     input = """
     GET teste
     BEGIN
@@ -221,6 +236,36 @@ defmodule DesafioCli.CLITest do
     assert output =~ "NIL"
     assert output =~ "NIL"
     assert output =~ "NIL"
+    assert output =~ "Exiting program."
+  end
+
+  test "COMMIT command error no transaction" do
+    input = """
+    COMMIT
+    EXIT
+    """
+
+    output =
+      capture_io([input: input, capture_prompt: false], fn ->
+        CLI.main()
+      end)
+
+    assert output =~ "ERR No transaction"
+    assert output =~ "Exiting program."
+  end
+
+  test "Invalid command error" do
+    input = """
+    TRY
+    EXIT
+    """
+
+    output =
+      capture_io([input: input, capture_prompt: false], fn ->
+        CLI.main()
+      end)
+
+    assert output =~ "ERR \"Invalid command\""
     assert output =~ "Exiting program."
   end
 end

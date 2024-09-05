@@ -8,8 +8,8 @@ defmodule DesafioCli do
 
   def main(_args) do
     KVStore.start_link([])
-
     IO.puts("Interactive KV Store started.")
+
     CLI.main()
   end
 end
