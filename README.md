@@ -19,3 +19,22 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at <https://hexdocs.pm/desafio_cli>.
 
+## Build
+
+To generate the executable binary, run the following command:
+
+```elixir
+mix escript.build
+```
+
+Once the build is complete, you can run the program with:
+
+```
+./desafio_cli
+```
+
+Ensure the file has execution permissions. If needed, adjust them using:
+
+```
+chmod +x desafio_cli
+```
