@@ -265,7 +265,7 @@ defmodule DesafioCli.CLITest do
         CLI.main()
       end)
 
-    assert output =~ "ERR \"Invalid command\""
+    assert output =~ "ERR \"No command TRY\""
     assert output =~ "Exiting program."
   end
 end

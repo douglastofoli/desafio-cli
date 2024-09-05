@@ -50,8 +50,8 @@ defmodule DesafioCli.CLI do
     end
   end
 
-  defp execute_command(_other_command) do
-    IO.puts("ERR \"Invalid command\"")
+  defp execute_command([command]) do
+    IO.puts("ERR \"No command #{command}\"")
   end
 
   defp parse_command(input) do
