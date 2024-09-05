@@ -5,7 +5,7 @@ defmodule DesafioCli.KVStoreTest do
 
   setup do
     KVStore.start_link([])
-    on_exit(fn -> KVStore.exit_program() end)
+    on_exit(fn -> KVStore.stop() end)
   end
 
   test "set and get key-value" do

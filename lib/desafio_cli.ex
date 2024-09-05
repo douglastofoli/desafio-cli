@@ -4,8 +4,12 @@ defmodule DesafioCli do
   """
 
   alias DesafioCli.CLI
+  alias DesafioCli.KVStore
 
-  def main(args) do
-    CLI.main(args)
+  def main(_args) do
+    KVStore.start_link([])
+
+    IO.puts("Interactive KV Store started.")
+    CLI.main()
   end
 end

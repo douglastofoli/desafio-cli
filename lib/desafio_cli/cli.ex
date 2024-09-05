@@ -1,54 +1,57 @@
 defmodule DesafioCli.CLI do
   alias DesafioCli.KVStore
 
-  def main(_args) do
-    KVStore.start_link([])
-
-    IO.puts("Interactive KV Store started.")
-    loop()
-  end
+  def main(), do: loop()
 
   defp loop do
     input = IO.gets("> ") |> String.trim()
 
     case parse_command(input) do
-      ["SET", key, value] ->
-        {bool, value} = KVStore.set(key, value)
-        IO.puts("#{bool} #{value}")
-
-      ["SET", _key] ->
-        IO.puts("ERR \"SET <key> <value> - Syntax error\"")
-
-      ["GET", key] ->
-        value = KVStore.get(key)
-        IO.puts(value)
-
-      ["BEGIN"] ->
-        value = KVStore.begin_transaction()
-        IO.puts(value)
-
-      ["ROLLBACK"] ->
-        case KVStore.rollback_transaction() do
-          {:error, message} -> IO.puts("ERR #{message}")
-          value -> IO.puts(value)
-        end
-
-      ["COMMIT"] ->
-        case KVStore.commit_transaction() do
-          {:error, message} -> IO.puts("ERR #{message}")
-          value -> IO.puts(value)
-        end
-
       ["EXIT"] ->
         KVStore.stop()
         IO.puts("Exiting program.")
-        System.halt(0)
 
-      _ ->
-        IO.puts("ERR \"No command #{input}\"")
+      command ->
+        execute_command(command)
+        loop()
     end
+  end
 
-    loop()
+  defp execute_command(["SET", key, value]) do
+    {bool, value} = KVStore.set(key, value)
+    IO.puts("#{bool} #{value}")
+  end
+
+  defp execute_command(["SET", _key]) do
+    IO.puts("ERR \"SET <key> <value> - Syntax error\"")
+  end
+
+  defp execute_command(["GET", key]) do
+    value = KVStore.get(key)
+    IO.puts(value)
+  end
+
+  defp execute_command(["BEGIN"]) do
+    value = KVStore.begin_transaction()
+    IO.puts(value)
+  end
+
+  defp execute_command(["ROLLBACK"]) do
+    case KVStore.rollback_transaction() do
+      {:error, message} -> IO.puts("ERR #{message}")
+      value -> IO.puts(value)
+    end
+  end
+
+  defp execute_command(["COMMIT"]) do
+    case KVStore.commit_transaction() do
+      {:error, message} -> IO.puts("ERR #{message}")
+      value -> IO.puts(value)
+    end
+  end
+
+  defp execute_command(_other_command) do
+    IO.puts("ERR \"Invalid command\"")
   end
 
   defp parse_command(input) do
@@ -57,5 +60,9 @@ defmodule DesafioCli.CLI do
       [_, quoted] -> quoted
       [unquoted] -> unquoted
     end)
+    |> case do
+      [command, key | rest] when rest != [] -> [command, key, Enum.join(rest, " ")]
+      parsed -> parsed
+    end
   end
 end

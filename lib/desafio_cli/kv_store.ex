@@ -1,15 +1,14 @@
 defmodule DesafioCli.KVStore do
   use GenServer
 
-  @dets_file :kvstore_dets
-
   # Public API
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
+  def start_link(_, dets_file \\ :kvstore_dets) do
+    GenServer.start_link(__MODULE__, %{dets_file: dets_file}, name: __MODULE__)
   end
 
+  @impl true
   def init(state) do
-    case :dets.open_file(@dets_file, type: :set) do
+    case :dets.open_file(state.dets_file, type: :set) do
       {:ok, _} ->
         {:ok, Map.put(state, :transactions, [])}
 
@@ -45,18 +44,19 @@ defmodule DesafioCli.KVStore do
 
   # GenServer calls
 
+  @impl true
   def handle_call(:stop, _from, state) do
-    :dets.close(@dets_file)
+    :dets.close(state.dets_file)
     {:stop, :normal, :ok, state}
   end
 
   def handle_call({:set, key, value}, _from, state) do
     current_level = length(state[:transactions])
 
-    case :dets.lookup(@dets_file, key) do
+    case :dets.lookup(state.dets_file, key) do
       [] ->
         if current_level == 0 do
-          :dets.insert(@dets_file, {key, value})
+          :dets.insert(state.dets_file, {key, value})
           {:reply, {:FALSE, value}, state}
         else
           new_state =
@@ -69,7 +69,7 @@ defmodule DesafioCli.KVStore do
 
       [{_, _}] ->
         if current_level == 0 do
-          :dets.insert(@dets_file, {key, value})
+          :dets.insert(state.dets_file, {key, value})
           {:reply, {:TRUE, value}, state}
         else
           new_state =
@@ -88,7 +88,7 @@ defmodule DesafioCli.KVStore do
         {:reply, value, state}
 
       :not_found ->
-        case :dets.lookup(@dets_file, key) do
+        case :dets.lookup(state.dets_file, key) do
           [] -> {:reply, :NIL, state}
           [{_, value}] -> {:reply, value, state}
         end
@@ -116,7 +116,7 @@ defmodule DesafioCli.KVStore do
         {:reply, {:error, "No transaction"}, state}
 
       [current | rest] ->
-        Enum.each(current, fn {key, value} -> :dets.insert(@dets_file, {key, value}) end)
+        Enum.each(current, fn {key, value} -> :dets.insert(state.dets_file, {key, value}) end)
         {:reply, length(rest), Map.put(state, :transactions, rest)}
     end
   end
