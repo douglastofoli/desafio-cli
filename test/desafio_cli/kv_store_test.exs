@@ -4,9 +4,11 @@ defmodule DesafioCli.KVStoreTest do
   alias DesafioCli.KVStore
 
   setup do
-    if File.exists?("kvstore_dets_test") do
-      File.rm!("kvstore_dets_test")
-    end
+    remove_file_test("kvstore_dets_test")
+
+    on_exit(fn ->
+      remove_file_test("kvstore_dets_test")
+    end)
 
     {:ok, _pid} = KVStore.start_link([], :kvstore_dets_test)
     :ok
@@ -71,6 +73,12 @@ defmodule DesafioCli.KVStoreTest do
       assert KVStore.set("teste", 2) == {:TRUE, 2}
       assert KVStore.commit_transaction() == 0
       assert KVStore.get("teste") == 2
+    end
+  end
+
+  defp remove_file_test(file) do
+    if File.exists?(file) do
+      File.rm!(file)
     end
   end
 end

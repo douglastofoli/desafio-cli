@@ -7,9 +7,11 @@ defmodule DesafioCli.CLITest do
   alias DesafioCli.KVStore
 
   setup do
-    if File.exists?("kvstore_dets_test") do
-      File.rm!("kvstore_dets_test")
-    end
+    remove_file_test("kvstore_dets_test")
+
+    on_exit(fn ->
+      remove_file_test("kvstore_dets_test")
+    end)
 
     {:ok, _pid} = KVStore.start_link([], :kvstore_dets_test)
     :ok
@@ -101,6 +103,43 @@ defmodule DesafioCli.CLITest do
 
     assert output =~ "1"
     assert output =~ "2"
+    assert output =~ "Exiting program."
+  end
+
+  test "BEGIN command persistence" do
+    input = """
+    GET teste
+    BEGIN
+    SET teste 1
+    GET teste
+    COMMIT
+    EXIT
+    """
+
+    output =
+      capture_io([input: input, capture_prompt: false], fn ->
+        CLI.main()
+      end)
+
+    assert output =~ "NIL"
+    assert output =~ "1"
+    assert output =~ "FALSE 1"
+    assert output =~ "1"
+    assert output =~ "0"
+    assert output =~ "Exiting program."
+
+    input = """
+    GET teste
+    EXIT
+    """
+
+    output =
+      capture_io([input: input, capture_prompt: false], fn ->
+        {:ok, _pid} = KVStore.start_link([], :kvstore_dets_test)
+        CLI.main()
+      end)
+
+    assert output =~ "1"
     assert output =~ "Exiting program."
   end
 
@@ -267,5 +306,11 @@ defmodule DesafioCli.CLITest do
 
     assert output =~ "ERR \"No command TRY\""
     assert output =~ "Exiting program."
+  end
+
+  defp remove_file_test(file) do
+    if File.exists?(file) do
+      File.rm!(file)
+    end
   end
 end
