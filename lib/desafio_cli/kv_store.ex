@@ -55,30 +55,10 @@ defmodule DesafioCli.KVStore do
 
     case :dets.lookup(state.dets_file, key) do
       [] ->
-        if current_level == 0 do
-          :dets.insert(state.dets_file, {key, value})
-          {:reply, {:FALSE, value}, state}
-        else
-          new_state =
-            Map.update!(state, :transactions, fn [head | tail] ->
-              [Map.put(head, key, value) | tail]
-            end)
-
-          {:reply, {:FALSE, value}, new_state}
-        end
+        set_state(current_level, state, key, value, {:FALSE, value})
 
       [{_, _}] ->
-        if current_level == 0 do
-          :dets.insert(state.dets_file, {key, value})
-          {:reply, {:TRUE, value}, state}
-        else
-          new_state =
-            Map.update!(state, :transactions, fn [head | tail] ->
-              [Map.put(head, key, value) | tail]
-            end)
-
-          {:reply, {:TRUE, value}, new_state}
-        end
+        set_state(current_level, state, key, value, {:TRUE, value})
     end
   end
 
@@ -119,6 +99,20 @@ defmodule DesafioCli.KVStore do
         Enum.each(current, fn {key, value} -> :dets.insert(state.dets_file, {key, value}) end)
         {:reply, length(rest), Map.put(state, :transactions, rest)}
     end
+  end
+
+  defp set_state(0, state, key, value, reply_value) do
+    :dets.insert(state.dets_file, {key, value})
+    {:reply, reply_value, state}
+  end
+
+  defp set_state(_current_level, state, key, value, reply_value) do
+    new_state =
+      Map.update!(state, :transactions, fn [head | tail] ->
+        [Map.put(head, key, value) | tail]
+      end)
+
+    {:reply, reply_value, new_state}
   end
 
   defp find_in_transactions(key, transactions) do
