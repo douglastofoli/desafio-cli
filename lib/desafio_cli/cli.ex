@@ -22,10 +22,6 @@ defmodule DesafioCli.CLI do
     IO.puts("#{bool} #{value}")
   end
 
-  defp execute_command(["SET", _key]) do
-    IO.puts("ERR \"SET <key> <value> - Syntax error\"")
-  end
-
   defp execute_command(["GET", key]) do
     value = KVStore.get(key)
     IO.puts(value)
@@ -50,19 +46,33 @@ defmodule DesafioCli.CLI do
     end
   end
 
-  defp execute_command([command]) do
-    IO.puts("ERR \"No command #{command}\"")
+  defp execute_command([command | _]) do
+    case command do
+      "SET" -> IO.puts("ERR \"SET <key> <value> - Syntax error\"")
+      "GET" -> IO.puts("ERR \"GET <key> - Syntax error\"")
+      _ -> IO.puts("ERR \"No command #{command}\"")
+    end
   end
 
   defp parse_command(input) do
+    input
+    |> tokenize_input()
+    |> process_tokens()
+  end
+
+  defp tokenize_input(input) do
     Regex.scan(~r/(?:"([^"]*)"|\S+)/, input)
     |> Enum.map(fn
       [_, quoted] -> quoted
       [unquoted] -> unquoted
     end)
-    |> case do
-      [command, key | rest] when rest != [] -> [command, key, Enum.join(rest, " ")]
-      parsed -> parsed
-    end
+  end
+
+  defp process_tokens([command, key | rest]) when rest != [] do
+    [command, key, Enum.join(rest, " ")]
+  end
+
+  defp process_tokens(parsed) do
+    parsed
   end
 end
